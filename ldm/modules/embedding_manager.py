@@ -43,7 +43,7 @@ class EmbeddingManager(nn.Module):
         super().__init__()
 
         self.string_to_token_dict = {}
-        
+
         self.string_to_param_dict = nn.ParameterDict()
 
         self.initial_embeddings = nn.ParameterDict() # These should not be optimized
@@ -68,7 +68,7 @@ class EmbeddingManager(nn.Module):
             placeholder_strings.extend(per_img_token_list)
 
         for idx, placeholder_string in enumerate(placeholder_strings):
-            
+
             token = get_token_for_string(placeholder_string)
 
             if initializer_words and idx < len(initializer_words):
@@ -81,7 +81,7 @@ class EmbeddingManager(nn.Module):
                 self.initial_embeddings[placeholder_string] = torch.nn.Parameter(init_word_embedding.unsqueeze(0).repeat(num_vectors_per_token, 1), requires_grad=False)
             else:
                 token_params = torch.nn.Parameter(torch.rand(size=(num_vectors_per_token, token_dim), requires_grad=True))
-            
+
             self.string_to_token_dict[placeholder_string] = token
             self.string_to_param_dict[placeholder_string] = token_params
 
@@ -140,15 +140,13 @@ class EmbeddingManager(nn.Module):
 
     def get_embedding_norms_squared(self):
         all_params = torch.cat(list(self.string_to_param_dict.values()), axis=0) # num_placeholders x embedding_dim
-        param_norm_squared = (all_params * all_params).sum(axis=-1)              # num_placeholders
-
-        return param_norm_squared
+        return (all_params * all_params).sum(axis=-1)
 
     def embedding_parameters(self):
         return self.string_to_param_dict.parameters()
 
     def embedding_to_coarse_loss(self):
-        
+
         loss = 0.
         num_embeddings = len(self.initial_embeddings)
 
